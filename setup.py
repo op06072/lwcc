@@ -14,6 +14,9 @@ setuptools.setup(
     url="https://github.com/tersekmatija/lwcc",
     packages=setuptools.find_packages(),
     scripts=[],
+    entry_points={
+        "console_scripts": ["lwcc=lwcc.lwcc_cli:main"]
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
