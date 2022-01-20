@@ -5,3 +5,4 @@ __pycache__/
 lwcc.egg-info/
 dist/
 build/
+.env

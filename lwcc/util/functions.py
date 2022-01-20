@@ -13,15 +13,16 @@ def build_url(path):
     return url
 
 def weights_check(model_name, model_weights):
-    # create dir if does not exists
-    Path("/.lwcc/weights").mkdir(parents=True, exist_ok=True)
-
     # download weights if not available
     home = str(Path.home())
 
+    # create dir if does not exists
+    Path(os.path.join(home, ".lwcc/weights")).mkdir(parents=True, exist_ok=True)
+
+
     file_name = "{}_{}.pth".format(model_name, model_weights)
     url = build_url(file_name)
-    output = os.path.join(home, "/.lwcc/weights/", file_name)
+    output = os.path.join(home, ".lwcc/weights/", file_name)
     print(output)
 
     if not os.path.isfile(output):
