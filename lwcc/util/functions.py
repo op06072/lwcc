@@ -71,3 +71,47 @@ def load_image(img_path, model_name, is_gray=False, resize_img = True):
     name = os.path.basename(img_path).split('.')[0]
 
     return img, name
+
+
+def load_image_arr(img_arr, model_name, is_gray=False, resize_img = True):
+    """loads an opencv frame as image
+    Args:
+        img_arr: opencv frame in RGB
+        model_name: name of the model
+        is_gray (bool, optional): convert to gray scale. Defaults to False.
+        resize_img (bool, optional): resize image. Defaults to True.
+    """
+    # set transform
+    if is_gray:
+        trans = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+        ])
+    else:
+        trans = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ])
+
+    # preprocess image
+    img = Image.fromarray(img_arr)
+
+    # resize image
+    if resize_img:
+        long = max(img.size[0], img.size[1])
+        factor = 1000 / long
+        img = img.resize((int(img.size[0] * factor), int(img.size[1] * factor)),
+                         Image.BILINEAR)
+
+    # different preprocessing for SFANet
+    if model_name == "SFANet":
+        height, width = img.size[1], img.size[0]
+        height = round(height / 16) * 16
+        width = round(width / 16) * 16
+        img = img.resize((width, height), Image.BILINEAR)
+
+
+    img = trans(img)
+    img = img.unsqueeze(0)
+
+    return img

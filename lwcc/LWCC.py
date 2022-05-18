@@ -1,5 +1,5 @@
 from .models import CSRNet, SFANet, Bay, DMCount
-from .util.functions import load_image
+from .util.functions import load_image, load_image_arr
 
 import torch
 
@@ -93,3 +93,19 @@ def get_count(img_paths, model_name="CSRNet", model_weights="SHA", model=None, i
         return counts, densities
 
     return counts
+
+
+def get_count_arr(img_arr, model_name="CSRNet", model_weights="SHA", model=None, is_gray=False,
+              resize_img=True):
+    # load model
+    if model is None:
+        model = load_model(model_name, model_weights)
+
+    img = load_image_arr(img_arr, model.get_name(), is_gray, resize_img)
+
+    with torch.set_grad_enabled(False):
+        output = model(img)
+
+    count = torch.sum(output)
+
+    return float(count.numpy()), output
