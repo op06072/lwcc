@@ -107,5 +107,7 @@ def get_count_arr(img_arr, model_name="CSRNet", model_weights="SHA", model=None,
         output = model(img)
 
     count = torch.sum(output)
+    density = output.numpy()
+    density = density.reshape((density.shape[2], density.shape[3]))
 
-    return float(count.numpy()), output
+    return float(count.numpy()), density
