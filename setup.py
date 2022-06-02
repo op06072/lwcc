@@ -23,5 +23,5 @@ setuptools.setup(
         "Operating System :: OS Independent"
     ],
     python_requires='>=3.6',
-    install_requires=["numpy>=1.14.0", "torch>=1.6.0", "gdown>=3.10.1", "torchvision>=0.7.0", "Pillow>=8.0.0"]
+    install_requires=["numpy>=1.14.0", "torch>=1.6.0", "gdown>=3.10.1", "torchvision>=0.7.0"]
 )
