@@ -104,7 +104,8 @@ def get_count_arr(img_arr, model_name="CSRNet", model_weights="SHA", model=None,
     img = load_image_arr(img_arr, model.get_name(), is_gray, resize_img)
 
     if device is not None:
-        img.to(device=device)
+        print(f"transfering tensor to device: {device}")
+        img = img.to(device=device)
 
     with torch.set_grad_enabled(False):
         output = model(img)
