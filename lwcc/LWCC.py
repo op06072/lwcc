@@ -96,12 +96,15 @@ def get_count(img_paths, model_name="CSRNet", model_weights="SHA", model=None, i
 
 
 def get_count_arr(img_arr, model_name="CSRNet", model_weights="SHA", model=None, is_gray=False,
-              resize_img=True):
+              resize_img=True, device=None):
     # load model
     if model is None:
         model = load_model(model_name, model_weights)
 
     img = load_image_arr(img_arr, model.get_name(), is_gray, resize_img)
+
+    if device is not None:
+        img.to(device=device)
 
     with torch.set_grad_enabled(False):
         output = model(img)
