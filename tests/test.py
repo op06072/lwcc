@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 img1 = "dataset/img01.jpg"
 img2 = "dataset/img02.jpg"
 
-# Initialize model and predict
 """
-model = LWCC.load_model(model_weights= "SHA")
-count = LWCC.get_count(img2, model = model)
+# Initialize model and predict
+model = LWCC.load_model(model_weights="SHA")
+count = LWCC.get_count(img2, model=model, device='cuda')
 print(f"Count for img1: {count}")
 """
 

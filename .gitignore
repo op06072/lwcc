@@ -6,3 +6,6 @@ lwcc.egg-info/
 dist/
 build/
 .env
+*.png
+
+.idea/

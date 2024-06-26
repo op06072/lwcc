@@ -4,11 +4,18 @@ import numpy as np
 from pathlib import Path
 from typing import Union
 
-from torchvision import transforms
+import torch
 from PIL import Image
+from torchvision import transforms
 
 
-img_type = Union[os.PathLike, np.ndarray, Image]
+img_type = Union[str, os.PathLike, np.ndarray, Image]
+
+
+def tensor_convert(tensor):
+    if tensor.device != torch.device("cpu"):
+        tensor = tensor.cpu()
+    return tensor.numpy()
 
 
 def build_url(path):
@@ -40,11 +47,12 @@ def weights_check(model_name, model_weights):
 
 def load_image(img: img_type, model_name: str, is_gray=False, resize_img=True) -> Image:
     # img type check
-    if isinstance(img, os.PathLike):
+    f = None
+    if isinstance(img, (str, os.PathLike)):
         if not os.path.isfile(img):
             raise ValueError("Confirm that {} exists".format(img))
-        with open(img, 'rb') as f:
-            img = Image.open(f)
+        f = open(img, 'rb')
+        img = Image.open(f)
     elif isinstance(img, np.ndarray):
         img = Image.fromarray(img)
 
@@ -61,7 +69,8 @@ def load_image(img: img_type, model_name: str, is_gray=False, resize_img=True) -
         ])
 
     # preprocess image
-    img = img.convert('RGB')
+    if img.mode != 'RGB':
+        img = img.convert('RGB')
 
     # resize image
     if resize_img:
@@ -81,6 +90,9 @@ def load_image(img: img_type, model_name: str, is_gray=False, resize_img=True) -
 
     img = trans(img)
     img = img.unsqueeze(0)
+
+    if f is not None:
+        f.close()
 
     return img
 

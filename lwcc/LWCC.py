@@ -1,7 +1,8 @@
 from .models import CSRNet, SFANet, Bay, DMCount
-from .util.functions import load_image, load_image_arr, img_type
+from .util.functions import load_image, load_image_arr, img_type, tensor_convert
 
 import torch
+from platform import system
 
 
 def load_model(model_name="CSRNet", model_weights="SHA"):
@@ -76,9 +77,10 @@ def get_count(
     # load images
     imgs, names = [], []
 
-    for img in images:
-        img, name = load_image(img, model.get_name(), is_gray, resize_img)
+    for idx, img in enumerate(images):
+        img = load_image(img, model.get_name(), is_gray, resize_img)
         imgs.append(img)
+        name = idx
         names.append(name)
 
     if device != "cpu":
@@ -86,7 +88,7 @@ def get_count(
         imgs = [img.to(device=device) for img in imgs]
         model = model.to(device=device)
 
-    if not torch.backends.mps.is_available():
+    if not torch.backends.mps.is_available() and system() != 'Windows':
         model.compile()
 
     imgs = torch.cat(imgs)
@@ -94,10 +96,10 @@ def get_count(
     with torch.set_grad_enabled(False):
         outputs = model(imgs)
 
-    counts = torch.sum(outputs, (1, 2, 3)).numpy()
+    counts = tensor_convert(torch.sum(outputs, (1, 2, 3)))
     counts = dict(zip(names, counts))
 
-    densities = dict(zip(names, outputs[:, 0, :, :].numpy()))
+    densities = dict(zip(names, tensor_convert(outputs[:, 0, :, :])))
 
     if len(counts) == 1:
         if return_density:
