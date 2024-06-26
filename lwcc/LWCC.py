@@ -99,7 +99,8 @@ def get_count(
 
     imgs = torch.cat(imgs)
 
-    with torch.set_grad_enabled(False):
+    # with torch.set_grad_enabled(False):
+    with torch.no_grad():
         outputs = model(imgs)
 
     counts = tensor_convert(torch.sum(outputs, (1, 2, 3)))
