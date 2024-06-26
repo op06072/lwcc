@@ -52,6 +52,7 @@ def get_count(
         return_density=False,
         resize_img=True,
         device="cpu",
+        compile_model=False
 ):
     """
     Return the count on image/s. You can use already loaded model or choose the name and pre-trained weights.
@@ -93,7 +94,7 @@ def get_count(
         imgs = [img.to(device=device) for img in imgs]
         model = model.to(device=device)
 
-    if not torch.backends.mps.is_available() and system() != 'Windows':
+    if not torch.backends.mps.is_available() and system() != 'Windows' and compile_model:
         model.compile()
 
     imgs = torch.cat(imgs)
