@@ -1,5 +1,5 @@
 from .models import CSRNet, SFANet, Bay, DMCount
-from .util.functions import load_image, load_image_arr
+from .util.functions import load_image, load_image_arr, img_type
 
 import torch
 
@@ -37,11 +37,19 @@ def load_model(model_name="CSRNet", model_weights="SHA"):
     return loaded_models[model_full_name]
 
 
-def get_count(img_paths, model_name="CSRNet", model_weights="SHA", model=None, is_gray=False, return_density=False,
-              resize_img = True):
+def get_count(
+        images: img_type | list[img_type],
+        model_name="CSRNet",
+        model_weights="SHA",
+        model=None,
+        is_gray=False,
+        return_density=False,
+        resize_img=True,
+        device="cpu",
+):
     """
     Return the count on image/s. You can use already loaded model or choose the name and pre-trained weights.
-    :param img_paths: Either String (path to the image) or a list of strings (paths).
+    :param images: Either a String (path to the image) or a numpy array (OpenCV frame) or a PIL Image or a list of them.
     :param model_name: If not using preloaded model, choose the model name. Default: "CSRNet".
     :param model_weights: If not using preloaded model, choose the model weights.  Default: "SHA".
     :param model: Possible preloaded model. Default: None.
@@ -49,6 +57,7 @@ def get_count(img_paths, model_name="CSRNet", model_weights="SHA", model=None, i
     :param return_density: Return the predicted density maps for input? Default: False.
     :param resize_img: Should images with high resolution be down-scaled? This is especially good for high resolution
             images with relatively few people. For very dense crowds, False is recommended. Default: True
+    :param device: Which device to use for Pytorch. Default: "cpu".
     :return: Depends on whether the input is a String or list and on the return_density flag.
         If input is a String, the output is a float with the predicted count.
         If input is a list, the output is a dictionary with image names as keys, and predicted counts (float) as values.
@@ -57,8 +66,8 @@ def get_count(img_paths, model_name="CSRNet", model_weights="SHA", model=None, i
     """
 
     # if one path to array
-    if type(img_paths) != list:
-        img_paths = [img_paths]
+    if type(images) != list:
+        images = [images]
 
     # load model
     if model is None:
@@ -67,10 +76,18 @@ def get_count(img_paths, model_name="CSRNet", model_weights="SHA", model=None, i
     # load images
     imgs, names = [], []
 
-    for img_path in img_paths:
-        img, name = load_image(img_path, model.get_name(), is_gray, resize_img)
+    for img in images:
+        img, name = load_image(img, model.get_name(), is_gray, resize_img)
         imgs.append(img)
         names.append(name)
+
+    if device != "cpu":
+        print(f"transfering tensor to device: {device}")
+        imgs = [img.to(device=device) for img in imgs]
+        model = model.to(device=device)
+
+    if not torch.backends.mps.is_available():
+        model.compile()
 
     imgs = torch.cat(imgs)
 
@@ -81,7 +98,6 @@ def get_count(img_paths, model_name="CSRNet", model_weights="SHA", model=None, i
     counts = dict(zip(names, counts))
 
     densities = dict(zip(names, outputs[:, 0, :, :].numpy()))
-
 
     if len(counts) == 1:
         if return_density:
@@ -96,7 +112,7 @@ def get_count(img_paths, model_name="CSRNet", model_weights="SHA", model=None, i
 
 
 def get_count_arr(img_arr, model_name="CSRNet", model_weights="SHA", model=None, is_gray=False,
-              resize_img=True, device=None):
+                  resize_img=True, device=None):
     # load model
     if model is None:
         model = load_model(model_name, model_weights)

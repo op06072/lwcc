@@ -1,9 +1,15 @@
-from pathlib import Path
-import gdown
 import os
+import gdown
+import numpy as np
+from pathlib import Path
+from typing import Union
 
 from torchvision import transforms
 from PIL import Image
+
+
+img_type = Union[os.PathLike, np.ndarray, Image]
+
 
 def build_url(path):
     url = "https://github.com/tersekmatija/lwcc_weights/releases/download/v0.1/{}".format(
@@ -12,13 +18,13 @@ def build_url(path):
 
     return url
 
+
 def weights_check(model_name, model_weights):
     # download weights if not available
     home = str(Path.home())
 
     # create dir if does not exists
     Path(os.path.join(home, ".lwcc/weights")).mkdir(parents=True, exist_ok=True)
-
 
     file_name = "{}_{}.pth".format(model_name, model_weights)
     url = build_url(file_name)
@@ -31,9 +37,16 @@ def weights_check(model_name, model_weights):
 
     return output
 
-def load_image(img_path, model_name, is_gray=False, resize_img = True):
-    if not os.path.isfile(img_path):
-        raise ValueError("Confirm that {} exists".format(img_path))
+
+def load_image(img: img_type, model_name: str, is_gray=False, resize_img=True) -> Image:
+    # img type check
+    if isinstance(img, os.PathLike):
+        if not os.path.isfile(img):
+            raise ValueError("Confirm that {} exists".format(img))
+        with open(img, 'rb') as f:
+            img = Image.open(f)
+    elif isinstance(img, np.ndarray):
+        img = Image.fromarray(img)
 
     # set transform
     if is_gray:
@@ -48,14 +61,16 @@ def load_image(img_path, model_name, is_gray=False, resize_img = True):
         ])
 
     # preprocess image
-    img = Image.open(img_path).convert('RGB')
+    img = img.convert('RGB')
 
     # resize image
     if resize_img:
         long = max(img.size[0], img.size[1])
         factor = 1000 / long
-        img = img.resize((int(img.size[0] * factor), int(img.size[1] * factor)),
-                         Image.BILINEAR)
+        img = img.resize(
+            (int(img.size[0] * factor), int(img.size[1] * factor)),
+            Image.BILINEAR
+        )
 
     # different preprocessing for SFANet
     if model_name == "SFANet":
@@ -64,16 +79,13 @@ def load_image(img_path, model_name, is_gray=False, resize_img = True):
         width = round(width / 16) * 16
         img = img.resize((width, height), Image.BILINEAR)
 
-
     img = trans(img)
     img = img.unsqueeze(0)
 
-    name = os.path.basename(img_path).split('.')[0]
-
-    return img, name
+    return img
 
 
-def load_image_arr(img_arr, model_name, is_gray=False, resize_img = True):
+def load_image_arr(img_arr, model_name, is_gray=False, resize_img=True):
     """loads an opencv frame as image
     Args:
         img_arr: opencv frame in RGB
@@ -109,7 +121,6 @@ def load_image_arr(img_arr, model_name, is_gray=False, resize_img = True):
         height = round(height / 16) * 16
         width = round(width / 16) * 16
         img = img.resize((width, height), Image.BILINEAR)
-
 
     img = trans(img)
     img = img.unsqueeze(0)
