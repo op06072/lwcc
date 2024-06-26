@@ -103,9 +103,9 @@ def get_count(
 
     if len(counts) == 1:
         if return_density:
-            return counts[name], densities[name]
+            return counts, densities
         else:
-            return counts[name]
+            return counts
 
     if return_density:
         return counts, densities
