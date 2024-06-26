@@ -1,11 +1,12 @@
 from .models import CSRNet, SFANet, Bay, DMCount
 from .util.functions import load_image, load_image_arr, img_type, tensor_convert
 
+import os
 import torch
 from platform import system
 
 
-def load_model(model_name="CSRNet", model_weights="SHA"):
+def load_model(model_name="CSRNet", model_weights="SHA", path: str | os.PathLike = None) -> torch.nn.Module:
     """
     Builds a model for Crowd Counting and initializes it as a singleton.
     :param model_name: One of the available models: CSRNet.
@@ -13,29 +14,33 @@ def load_model(model_name="CSRNet", model_weights="SHA"):
     :return: Built Crowd Counting model initialized with pretrained weights.
     """
 
-    available_models = {
-        'CSRNet': CSRNet,
-        'SFANet': SFANet,
-        'Bay': Bay,
-        'DM-Count': DMCount
-    }
+    if path:
+        model = torch.load(path)
+        return model
+    else:
+        available_models = {
+            'CSRNet': CSRNet,
+            'SFANet': SFANet,
+            'Bay': Bay,
+            'DM-Count': DMCount
+        }
 
-    global loaded_models
+        global loaded_models
 
-    if "loaded_models" not in globals():
-        loaded_models = {}
+        if "loaded_models" not in globals():
+            loaded_models = {}
 
-    model_full_name = "{}_{}".format(model_name, model_weights)
-    if model_full_name not in loaded_models.keys():
-        model = available_models.get(model_name)
-        if model:
-            model = model.make_model(model_weights)
-            loaded_models[model_full_name] = model
-            print("Built model {} with weights {}".format(model_name, model_weights))
-        else:
-            raise ValueError("Invalid model_name. Model {} is not available.".format(model_name))
+        model_full_name = "{}_{}".format(model_name, model_weights)
+        if model_full_name not in loaded_models.keys():
+            model = available_models.get(model_name)
+            if model:
+                model = model.make_model(model_weights)
+                loaded_models[model_full_name] = model
+                print("Built model {} with weights {}".format(model_name, model_weights))
+            else:
+                raise ValueError("Invalid model_name. Model {} is not available.".format(model_name))
 
-    return loaded_models[model_full_name]
+        return loaded_models[model_full_name]
 
 
 def get_count(
