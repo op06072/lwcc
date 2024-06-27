@@ -9,7 +9,7 @@ from PIL import Image
 from torchvision import transforms
 
 
-img_type = Union[str, os.PathLike, np.ndarray, Image]
+img_type = Union[str, os.PathLike, np.ndarray, Image.Image]
 
 
 def tensor_convert(tensor):
