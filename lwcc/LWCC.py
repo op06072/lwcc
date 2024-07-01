@@ -90,7 +90,7 @@ def get_count(
         names.append(name)
 
     if device != "cpu":
-        print(f"transfering tensor to device: {device}")
+        # print(f"transfering tensor to device: {device}")
         imgs = [img.to(device=device) for img in imgs]
         model = model.to(device=device)
 
