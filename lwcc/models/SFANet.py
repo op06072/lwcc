@@ -1,20 +1,27 @@
-from ..util.functions import weights_check
+from lwcc.util.functions import weights_check
 
 import torch
 from torch import nn
 
-def make_model(model_weights):
+
+def make_model(model_weights) -> nn.Module:
     available_weights = ["SHB"]
 
     if model_weights not in available_weights:
-        raise ValueError("Weights {} not available for CSRNet. Available weights: {}".format(model_weights,
-                                                                                             available_weights))
+        raise ValueError(
+            "Weights {} not available for CSRNet. Available weights: {}".format(
+                model_weights, available_weights
+            )
+        )
     weights_path = weights_check("SFANet", model_weights)
 
     model = SFANet()
-    model.load_state_dict(torch.load(weights_path, map_location ='cpu')["model"])
+    model.load_state_dict(
+        torch.load(weights_path, map_location="cpu")["model"]
+    )
 
     return model
+
 
 class SFANet(nn.Module):
     def __init__(self):
@@ -23,7 +30,9 @@ class SFANet(nn.Module):
         self.amp = BackEnd()
         self.dmp = BackEnd()
 
-        self.conv_att = BaseConv(32, 1, 1, 1, activation=nn.Sigmoid(), use_bn=True)
+        self.conv_att = BaseConv(
+            32, 1, 1, 1, activation=nn.Sigmoid(), use_bn=True
+        )
         self.conv_out = BaseConv(32, 1, 1, 1, activation=None, use_bn=False)
 
     def get_name(self):
@@ -38,7 +47,7 @@ class SFANet(nn.Module):
         dmp_out = amp_out * dmp_out
         dmp_out = self.conv_out(dmp_out)
 
-        return dmp_out#, amp_out
+        return dmp_out  # , amp_out
 
 
 class VGG(nn.Module):
@@ -46,18 +55,42 @@ class VGG(nn.Module):
         super(VGG, self).__init__()
         self.pool = nn.MaxPool2d(2, 2)
         self.conv1_1 = BaseConv(3, 64, 3, 1, activation=nn.ReLU(), use_bn=True)
-        self.conv1_2 = BaseConv(64, 64, 3, 1, activation=nn.ReLU(), use_bn=True)
-        self.conv2_1 = BaseConv(64, 128, 3, 1, activation=nn.ReLU(), use_bn=True)
-        self.conv2_2 = BaseConv(128, 128, 3, 1, activation=nn.ReLU(), use_bn=True)
-        self.conv3_1 = BaseConv(128, 256, 3, 1, activation=nn.ReLU(), use_bn=True)
-        self.conv3_2 = BaseConv(256, 256, 3, 1, activation=nn.ReLU(), use_bn=True)
-        self.conv3_3 = BaseConv(256, 256, 3, 1, activation=nn.ReLU(), use_bn=True)
-        self.conv4_1 = BaseConv(256, 512, 3, 1, activation=nn.ReLU(), use_bn=True)
-        self.conv4_2 = BaseConv(512, 512, 3, 1, activation=nn.ReLU(), use_bn=True)
-        self.conv4_3 = BaseConv(512, 512, 3, 1, activation=nn.ReLU(), use_bn=True)
-        self.conv5_1 = BaseConv(512, 512, 3, 1, activation=nn.ReLU(), use_bn=True)
-        self.conv5_2 = BaseConv(512, 512, 3, 1, activation=nn.ReLU(), use_bn=True)
-        self.conv5_3 = BaseConv(512, 512, 3, 1, activation=nn.ReLU(), use_bn=True)
+        self.conv1_2 = BaseConv(
+            64, 64, 3, 1, activation=nn.ReLU(), use_bn=True
+        )
+        self.conv2_1 = BaseConv(
+            64, 128, 3, 1, activation=nn.ReLU(), use_bn=True
+        )
+        self.conv2_2 = BaseConv(
+            128, 128, 3, 1, activation=nn.ReLU(), use_bn=True
+        )
+        self.conv3_1 = BaseConv(
+            128, 256, 3, 1, activation=nn.ReLU(), use_bn=True
+        )
+        self.conv3_2 = BaseConv(
+            256, 256, 3, 1, activation=nn.ReLU(), use_bn=True
+        )
+        self.conv3_3 = BaseConv(
+            256, 256, 3, 1, activation=nn.ReLU(), use_bn=True
+        )
+        self.conv4_1 = BaseConv(
+            256, 512, 3, 1, activation=nn.ReLU(), use_bn=True
+        )
+        self.conv4_2 = BaseConv(
+            512, 512, 3, 1, activation=nn.ReLU(), use_bn=True
+        )
+        self.conv4_3 = BaseConv(
+            512, 512, 3, 1, activation=nn.ReLU(), use_bn=True
+        )
+        self.conv5_1 = BaseConv(
+            512, 512, 3, 1, activation=nn.ReLU(), use_bn=True
+        )
+        self.conv5_2 = BaseConv(
+            512, 512, 3, 1, activation=nn.ReLU(), use_bn=True
+        )
+        self.conv5_3 = BaseConv(
+            512, 512, 3, 1, activation=nn.ReLU(), use_bn=True
+        )
 
     def forward(self, input):
         input = self.conv1_1(input)
@@ -89,11 +122,19 @@ class BackEnd(nn.Module):
         super(BackEnd, self).__init__()
         self.upsample = nn.UpsamplingBilinear2d(scale_factor=2)
 
-        self.conv1 = BaseConv(1024, 256, 1, 1, activation=nn.ReLU(), use_bn=True)
-        self.conv2 = BaseConv(256, 256, 3, 1, activation=nn.ReLU(), use_bn=True)
+        self.conv1 = BaseConv(
+            1024, 256, 1, 1, activation=nn.ReLU(), use_bn=True
+        )
+        self.conv2 = BaseConv(
+            256, 256, 3, 1, activation=nn.ReLU(), use_bn=True
+        )
 
-        self.conv3 = BaseConv(512, 128, 1, 1, activation=nn.ReLU(), use_bn=True)
-        self.conv4 = BaseConv(128, 128, 3, 1, activation=nn.ReLU(), use_bn=True)
+        self.conv3 = BaseConv(
+            512, 128, 1, 1, activation=nn.ReLU(), use_bn=True
+        )
+        self.conv4 = BaseConv(
+            128, 128, 3, 1, activation=nn.ReLU(), use_bn=True
+        )
 
         self.conv5 = BaseConv(256, 64, 1, 1, activation=nn.ReLU(), use_bn=True)
         self.conv6 = BaseConv(64, 64, 3, 1, activation=nn.ReLU(), use_bn=True)
@@ -123,11 +164,21 @@ class BackEnd(nn.Module):
 
 
 class BaseConv(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel, stride=1, activation=None, use_bn=False):
+    def __init__(
+        self,
+        in_channels,
+        out_channels,
+        kernel,
+        stride=1,
+        activation=None,
+        use_bn=False,
+    ):
         super(BaseConv, self).__init__()
         self.use_bn = use_bn
         self.activation = activation
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel, stride, kernel // 2)
+        self.conv = nn.Conv2d(
+            in_channels, out_channels, kernel, stride, kernel // 2
+        )
         self.conv.weight.data.normal_(0, 0.01)
         self.conv.bias.data.zero_()
         self.bn = nn.BatchNorm2d(out_channels)
@@ -142,9 +193,3 @@ class BaseConv(nn.Module):
             input = self.activation(input)
 
         return input
-
-
-if __name__ == '__main__':
-    input = torch.randn(8, 3, 400, 400).cuda()
-    model = Model().cuda()
-    output, attention = model(input)
