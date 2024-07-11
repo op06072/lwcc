@@ -27,5 +27,7 @@ setuptools.setup(
         "gdown>=3.10.1",
         "torchvision>=0.7.0",
         "Pillow>=8.0.0",
+        "einops",
+        "timm",
     ],
 )
